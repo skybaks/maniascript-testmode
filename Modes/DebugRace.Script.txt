@@ -1,110 +1,24 @@
 /**
- *	Debug Race Mode
+ * Debug Race Mode
  */
 #Extends "Libs/Nadeo/TMNext/TrackMania/Modes/TMNextBase.Script.txt"
 
-#Const	CompatibleMapTypes "TrackMania\\TM_Race,TM_Race"
-#Const	Version            "2020-07-15"
-#Const	ScriptName         "Modes/TrackMania/DebugRace.Script.txt"
+#Const CompatibleMapTypes "TrackMania\\TM_Race,TM_Race"
+#Const Version            "2020-07-23"
+#Const ScriptName         "Modes/TrackMania/DebugRace.Script.txt"
+#Const C_ModeName         "DebugRace"
+#Const Description        ""
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Libraries
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#Include "TextLib" as TL
-#Include "MathLib" as ML
-#Include "TimeLib" as TiL
-#Include "Libs/Nadeo/TMNext/TrackMania/Modes/Campaign/StateManager.Script.txt" as StateMgr
-#Include "Libs/Nadeo/TMNext/TrackMania/Modes/Campaign/Constants.Script.txt" as Consts
-#Include "Libs/Nadeo/ModeLibs/Common/Utils.Script.txt" as ModeUtils
-#Include "Libs/Nadeo/TMNext/TrackMania/Stores/UserStore.Script.txt" as UserStore
-#Include "Libs/Nadeo/TMNext/TrackMania/Stores/CampaignStore.Script.txt" as CampaignStore
-#Include "Libs/Nadeo/TMNext/TrackMania/Structures/CampaignStruct.Script.txt" as CampaignStruct
-#Include "Libs/Nadeo/TMNext/TrackMania/API/LeaderboardAPI.Script.txt" as LeaderboardAPI
-#Include "ManiaApps/Nadeo/TMxSM/Race/UIModules/TimeGap_Server.Script.txt" as UIModules_TimeGap
-#Include "Libs/Nadeo/TMNext/TrackMania/Menu/Constants.Script.txt" as MenuConsts
-#Include "ManiaApps/Nadeo/TMNext/TrackMania/Campaign/UIModules/StartRaceMenu_Server.Script.txt" as UIModules_StartRaceMenu
-#Include "ManiaApps/Nadeo/TMNext/TrackMania/Campaign/UIModules/PauseMenu_Server.Script.txt" as UIModules_PauseMenu
-#Include "ManiaApps/Nadeo/TMNext/TrackMania/UIModules/NetShare_Server.Script.txt" as NetShare
-#Include "ManiaApps/Nadeo/TMNext/TrackMania/Campaign/UIModules/EndRaceMenu_Server.Script.txt" as UIModules_EndRaceMenu
-#Include "ManiaApps/Nadeo/TMNext/TrackMania/Campaign/GhostUpload_Server.Script.txt" as GhostUpload
-#Include "ManiaApps/Nadeo/ModeLibs/Common/UIModules/Fade_Server.Script.txt" as UIModules_Fade
-#Include "Libs/Nadeo/TMNext/TrackMania/ColorPalette.Script.txt" as ColorPalette
-#Include "ManiaApps/Nadeo/TMxSM/Race/UIModules/ScoresTable_Server.Script.txt" as UIModules_ScoresTable
-#Include "Libs/Nadeo/TMNext/TrackMania/Trophy.Script.txt" as Trophy
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Settings
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#Setting S_CampaignId -1 as "<hidden>"
-#Setting S_CampaignMonthlyId -1 as "<hidden>"
-#Setting S_CampaignType -1 as "<hidden>" //< Type of campaign: quarterly, monthly, club, ...
-#Setting S_CampaignIsLive False as "<hidden>" //< Is the campaign active (only used by quarterly and monthly)
-#Setting S_CampaignIsOfficial False as "<hidden>" //< If it is a club campaign, is it official
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Constants
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#Const C_ModeName "Campaign"
-#Const Description ""
-
-#Const C_HudModulePath "" //< Path to the hud module
-#Const C_FakeUsersNb 0
-#Const C_GhostUploadTimeout 60000
-#Const C_IntroDuration 9000
-#Const C_UploadRecord True
-#Const C_DisplayRecordGhost False
-#Const C_DisplayRecordMedal False
-#Const C_CelebrateRecordGhost False
-#Const C_CelebrateRecordMedal False
-#Const C_EnableBestGhosts False
-
-// Applied with $xxx, must be hex3
-#Const C_GhostLabel_PB "7FA" // GreenOne
-
-#Struct K_Scope {
-	Text Type;
-	Text SeasonId;
-}
-
-#Struct K_CPGhost {
-	Ident GhostId;
-	Ident GhostAddId;
-	Integer Duration;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Extends
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 ***Match_LogVersions***
 ***
 Log::RegisterScript(ScriptName, Version);
-Log::RegisterScript(StateMgr::ScriptName, StateMgr::Version);
-Log::RegisterScript(UserStore::ScriptName, UserStore::Version);
-Log::RegisterScript(CampaignStore::ScriptName, CampaignStore::Version);
-Log::RegisterScript(CampaignStruct::ScriptName, CampaignStruct::Version);
-Log::RegisterScript(UIModules_StartRaceMenu::ScriptName, UIModules_StartRaceMenu::Version);
-Log::RegisterScript(UIModules_PauseMenu::ScriptName, UIModules_PauseMenu::Version);
-Log::RegisterScript(NetShare::ScriptName, NetShare::Version);
-Log::RegisterScript(MenuConsts::ScriptName, MenuConsts::Version);
-***
-
-***Match_LoadLibraries***
-***
-StateMgr::Load();
-***
-
-***Match_UnloadLibraries***
-***
-StateMgr::Unload();
 ***
 
 ***Match_Settings***
 ***
-MB_Settings_UseDefaultHud = (C_HudModulePath == "");
-MB_Settings_UseDefaultTimer = False;
-MB_Settings_UseDefaultUIManagement = False;
-MB_Settings_UseDefaultIntroSequence = False; //< Intro sequence is hidden by HoldLoadingScreen
-Race_Settings_UseDefaultUI = False;
+MB_Settings_UseDefaultTimer = True;
+MB_Settings_UseDefaultIntroSequence = False;
+Race_Settings_UseDefaultUI = True;
 Race_Settings_IsLocalMode = True;
 ***
 
@@ -116,234 +30,25 @@ ModeInfo::SetRules(Description);
 ModeInfo::SetStatusMessage("");
 ***
 
-***Match_Yield***
-***
-foreach (Event in PendingEvents) {
-	switch (Event.Type) {
-		// Initialize players when they join the server
-		case CSmModeEvent::EType::OnPlayerAdded: {
-			StateMgr::InitializePlayer(Event.Player);
-		}
-	}
-}
-
-StateMgr::Yield();
-***
-
-***Match_InitServer***
-***
-declare Text Server_RequestParam_GroupUid for This;
-declare Text Server_RequestParam_MapUid for This;
-***
-
 ***Match_StartServer***
 ***
-// Initialize mode
 UseClans = False;
 UsePvPCollisions = False;
 MB_Settings_UseDefaultPodiumSequence = False;
 Race::SetRespawnBehaviour(Race::C_RespawnBehaviour_GiveUpBeforeFirstCheckpoint);
-StateMgr::ForcePlayersStates([StateMgr::C_State_Playing]);
-WarmUp::SetAvailability(False);
-Ghost::EnableBestGhosts(C_EnableBestGhosts);
-Race::SetupRecord(
-	MenuConsts::C_ScopeType_Season,
-	MenuConsts::C_ScopeType_PersonalBest,
-	MenuConsts::C_GameMode_TimeAttack,
-	"",
-	C_UploadRecord,
-	C_DisplayRecordGhost,
-	C_DisplayRecordMedal,
-	C_CelebrateRecordGhost,
-	C_CelebrateRecordMedal,
-	( // Do not display the world records on the training campaign
-		S_CampaignId != CampaignStruct::C_Campaign_NullId &&
-		S_CampaignId != CampaignStore::GetTrainingCampaign().Id
-	)
-);
-***
-
-***Match_InitMap***
-***
-declare CTaskResult_Ghost Map_GetGhostTaskResult;
-declare Ident Map_BestGhostId;
-declare Ident Map_BestGhostAddId;
-declare Ident Map_LastRaceGhostId;
-declare K_CPGhost Map_CPGhost;
-declare Integer Map_LastRaceReplayStartTime;
-declare Ident[Ident] Map_RankingGhostIds; // [GhostId => GhostAddId]
-declare CampaignStruct::LibCampaignStruct_K_Campaign Map_Campaign;
-declare CampaignStruct::LibCampaignStruct_K_Map Map_Map for This;
-declare Boolean Map_DisplayStartRaceMenu;
-declare Boolean Map_DisplayIntro;
-declare Integer[Text] Map_SessionBestRaceTime; // indexed by account id (in case many players are present)
-declare CampaignStruct::LibCampaignStruct_K_TopScore[] Map_ZoneMapRanking;
-declare Boolean Map_VIPEnabled;
-declare Boolean Map_IsMedalsGhost;
-declare CampaignStruct::LibCampaignStruct_K_Ranking Map_TopRank;
-declare Integer[Integer][Integer] Map_TrophiesForMedals;
-declare Integer Map_PlayerRankWhenOpponentsAdded;
-***
-
-***Match_StartMap***
-***
-// Add bot when necessary
-Users_SetNbFakeUsers(C_FakeUsersNb, 0);
-
-NetShare::SetHasNextMap(NextMapIndex != 0);
-
-// Initialize race
-Map_DisplayStartRaceMenu = False;
-Map_DisplayIntro = False;
-Map_LastRaceReplayStartTime = -1;
-Map_SessionBestRaceTime = [];
-***
-
-***Match_InitRound***
-***
-declare Boolean Round_SkipEndRaceMenu;
-declare Integer Round_Medal;
-***
-
-***Match_StartRound***
-***
-UIModules_EndRaceMenu::StopCurrentSounds();
-
-// Remove old PB ghost
-if (Map_BestGhostAddId != NullId) {
-	GhostMgr.Ghost_Remove(Map_BestGhostAddId);
-	Map_BestGhostAddId = NullId;
-}
-// Add new PB ghost
-declare Integer[] BestRaceTimes;
-declare Integer[] PartialRaceTimes;
-if (Map_BestGhostId != NullId && DataFileMgr.Ghosts.existskey(Map_BestGhostId)) {
-	declare CGhost BestGhost = DataFileMgr.Ghosts[Map_BestGhostId];
-	Map_BestGhostAddId = Ghost_AddPBWithName(BestGhost, True);
-	// Get PB ghost checkpoints times
-	BestRaceTimes = [];
-	foreach (CPTime in BestGhost.Result.Checkpoints) {
-		BestRaceTimes.add(CPTime);
-	}
-}
-// Remove CP ghost if there is a PB ghost
-if (Map_BestGhostId != NullId && Map_CPGhost.GhostId != NullId) {
-	Map_CPGhost = RemoveCPGhost(Map_CPGhost);
-} 
-// Otherwise get CP ghost checkpoints times
-else if (Map_CPGhost.GhostId != NullId && DataFileMgr.Ghosts.existskey(Map_CPGhost.GhostId)) {
-	declare CGhost CPGhost = DataFileMgr.Ghosts[Map_CPGhost.GhostId];
-	PartialRaceTimes = [];
-	foreach (CPTime in CPGhost.Result.Checkpoints) {
-		PartialRaceTimes.add(CPTime);
-	}
-}
-// Initialize best race with the best ghost checkpoints times
-// Do not update the best race now if we use the CP ghost
-// It is an incomplete race and we don't want to display its
-// times as personnal best in the start race menu
-foreach (Player in Players) {
-	Scores::UseWaypointTimesAsBestRace(Player, BestRaceTimes);
-}
-
-// If we use the CP ghost times as best race
-// update the best race only after the start race menu.
-// We do not want to display a partial race as
-// a personnal best in the start race menu.
-foreach (Player in Players) {
-	if (Player.Score.BestRaceTimes.count <= 0 && PartialRaceTimes.count > 0) {
-		Scores::UseWaypointTimesAsBestRace(Player, PartialRaceTimes);
-	}
-}
-
-StartTime = Now + Race::C_SpawnDuration;
-MB_EnablePlayMode(True);
-Ghosts_SetStartTime(-1);
-
-// Ensure that the volume balance enters Playing state
-UIModules_StartRaceMenu::SetVolumeBalanceState_Playing();
-
-// Spawn players for the race
-foreach (Player in Players) {
-	Race::Start(Player, StartTime);
-}
-
-StateMgr::ForcePlayersStates([StateMgr::C_State_Playing]);
-RaceStateMgr::ForcePlayersStates([StateMgr::C_State_Playing]);
 ***
 
 ***Match_PlayLoop***
 ***
-// Manage race events
-declare RacePendingEvents = Race::GetPendingEvents();
-foreach (Event in RacePendingEvents) {
-	Race::ValidEvent(Event);
-
-	// Waypoint
-	if (Event.Type == Events::C_Type_Waypoint) {
-		if (Event.IsEndRace) {
-			Race::StopSkipScoresTable(Event.Player);
-			
-			declare CGhost Ghost = Ghost_RetrieveFromPlayer(Event.Player);
-			if (Ghost != Null) {
-				if (
-					Map_LastRaceGhostId != NullId &&
-					DataFileMgr.Ghosts.existskey(Map_LastRaceGhostId) &&
-					Map_LastRaceGhostId != Map_BestGhostId
-				) {
-					DataFileMgr.Ghost_Release(Map_LastRaceGhostId);
-				}
-				Map_LastRaceGhostId = Ghost.Id;
-
-				// If highscore ...
-				if (
-					Map_BestGhostId == NullId || (
-						DataFileMgr.Ghosts.existskey(Map_BestGhostId) &&
-						DataFileMgr.Ghosts[Map_BestGhostId].Result.Time > Ghost.Result.Time
-					)
-				) {
-					// Update local best ghost
-					if (Map_BestGhostAddId != NullId) GhostMgr.Ghost_Remove(Map_BestGhostAddId);
-					if (Map_BestGhostId != NullId) {
-						if (C_EnableBestGhosts) {
-							Ghost::AvoidDuplicate_Remove(Map_BestGhostId);
-						}
-						DataFileMgr.Ghost_Release(Map_BestGhostId);
-					}
-					Map_BestGhostId = Ghost.Id;
-					if (C_EnableBestGhosts) {
-						Ghost::AvoidDuplicate_Add(Map_BestGhostId);
-					}
-					Map_BestGhostAddId = Ghost_AddPBWithName(Ghost, True);
-				}
-			}
-
-		} else if (Event.IsEndLap) {
-		}
-	} else if (Event.Type == Events::C_Type_GiveUp) {
-		if (Map_BestGhostId == NullId) {
-			Map_CPGhost = UpdateCPGhost(Map_CPGhost, Event.Player, Now);
-		}
-	}
-}
-
-// Manage mode events
-foreach (Event in PendingEvents) {
-	if (Event.HasBeenPassed || Event.HasBeenDiscarded) continue;
-	Events::Invalid(Event);
-}
-
 // Spawn players
 if (MB_RoundIsRunning()) {
-	foreach (Player in Players) {
-		if (Race::IsReadyToStart(Player)) {
-			SetGhostsMaxAlpha(Map_BestGhostAddId, Map_CPGhost.GhostAddId, Map_RankingGhostIds.count);
-			Race::Start(Player);
-		}
-	}
+    foreach (Player in Players) {
+        if (Race::IsReadyToStart(Player)) {
+            Race::Start(Player);
+        }
+    }
 }
 
-////////////////////
 foreach (Player in Players) {
     if (Player.SpawnStatus == CSmPlayer::ESpawnStatus::Spawned) {
         declare Text ManialinkDebugInfo;
@@ -352,7 +57,7 @@ foreach (Player in Players) {
         declare Real FlyingDistance = Player.FlyingDistance;
         declare Integer WheelsContactCount = Player.WheelsContactCount;
         declare Boolean IsTouchingGround = Player.IsTouchingGround;
-		declare Integer Speed = Player.DisplaySpeed;
+        declare Integer Speed = Player.DisplaySpeed;
         declare Real Upwardness = Player.Upwardness;
         declare Real PosX = Player.Position.X;
         declare Real PosY = Player.Position.Y;
@@ -370,7 +75,7 @@ foreach (Player in Players) {
         Fly Duration: {{{FlyingDuration}}}
         Fly Distance: {{{FlyingDistance}}}
         On Ground? {{{IsTouchingGround}}}
-		Speed: {{{Speed}}}
+        Speed: {{{Speed}}}
         #Wheels: {{{WheelsContactCount}}}
         Upwardness: {{{Upwardness}}}
         Coordinates: X={{{PosX}}}, Y={{{PosY}}}, Z={{{PosZ}}}
@@ -383,335 +88,4 @@ foreach (Player in Players) {
         Layers::Attach("ManialinkDebugInfo", Player);
     }
 }
-////////////////////
 ***
-
-***Match_EndRound***
-***
-
-// Reset the score times if we are still using the CP Ghost.
-// We do not want to use these times in the end race menu.
-if (Map_BestGhostId == NullId) {
-	foreach (Player in AllPlayers) {
-		Score_Clear(Player.Score);
-	}
-}
-
-MB_Yield();
-***
-
-***Match_EndMap***
-***
-// Ensure that we stop the match (after a vote for the next map, ...)
-MB_StopMatch();
-
-// Release ghosts
-if (Map_BestGhostAddId != NullId) GhostMgr.Ghost_Remove(Map_BestGhostAddId);
-if (Map_BestGhostId != NullId) {
-	if (C_EnableBestGhosts) {
-		Ghost::AvoidDuplicate_Remove(Map_BestGhostId);
-	}
-	if (DataFileMgr.Ghosts.existskey(Map_BestGhostId)) {
-		DataFileMgr.Ghost_Release(Map_BestGhostId);
-	}
-}
-if (Map_LastRaceGhostId != NullId && DataFileMgr.Ghosts.existskey(Map_LastRaceGhostId)) {
-	DataFileMgr.Ghost_Release(Map_LastRaceGhostId);
-}
-declare Ident[Ident] TmpRankingGhostIds = Map_RankingGhostIds;
-foreach (GhostId => GhostAddId in TmpRankingGhostIds) {
-	if (GhostAddId != NullId) {
-		GhostMgr.Ghost_Remove(GhostAddId);
-	}
-	Map_RankingGhostIds.removekey(GhostId);
-	if (C_EnableBestGhosts) {
-		Ghost::AvoidDuplicate_Remove(Map_BestGhostId);
-	}
-	if (DataFileMgr.Ghosts.existskey(GhostId)) {
-		DataFileMgr.Ghost_Release(GhostId);
-	}
-}
-
-StateMgr::ForcePlayersStates([StateMgr::C_State_Waiting]);
-***
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Functions
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Setup ghosts max alpha
-Void SetGhostsMaxAlpha(Ident _BestGhostAddId, Ident _CPGhostAddId, Integer _OpponentsGhostsNb) {
-	declare Integer GhostsNb = _OpponentsGhostsNb;
-	if (_BestGhostAddId != NullId) GhostsNb += 1;
-	if (_CPGhostAddId != NullId) GhostsNb += 1;
-	Ghost::AutoGhostsMaxAlpha(Race_Settings_IsLocalMode, GhostsNb);
-}
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/** Get the scope type of the season
- *
- *	@param	_SeasonId								The season Id of the campaign
- *
- *	@return													The scope of the season
- */
-K_Scope GetScope(Text _SeasonId) {
-	if (_SeasonId != "") {
-		return K_Scope {
-			Type = MenuConsts::C_ScopeType_Season,
-			SeasonId = _SeasonId
-		};
-	}
-	return K_Scope {
-		Type = MenuConsts::C_ScopeType_PersonalBest,
-		SeasonId = ""
-	};
-}
-
-Text GetPBName() {
-	//L16N [Campaign] Name displayed above the ghost of the player's best time. %1 will be replaced by a color code that will not be visible in the label.
-	return TL::Compose(_("%1Personal best"), "$"^C_GhostLabel_PB);
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Rename a ghost "Personal best" and add it on the track
-Ident Ghost_AddPBWithName(CGhost _Ghost, Boolean _IsLayer) {
-	declare Ghost = _Ghost;
-	
-	Ghost.Nickname = GetPBName();
-	//L16N [Record] Best time done by the player. PB stands for Personnal Best. The translation must be 3 or less letters because it's displayed on the back of the car (as the trigram).
-	Ghost.Trigram = _("|Personal best|PB");
-	declare GhostAddId = GhostMgr.Ghost_Add(Ghost, _IsLayer);
-	return GhostAddId;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Remove the ghost of the best CP
-K_CPGhost RemoveCPGhost(K_CPGhost _CPGhost) {
-	declare K_CPGhost CPGhost = _CPGhost;
-	
-	if (CPGhost.GhostAddId != NullId) {
-		GhostMgr.Ghost_Remove(CPGhost.GhostAddId);
-	}
-	if (CPGhost.GhostId != NullId && DataFileMgr.Ghosts.existskey(CPGhost.GhostId)) {
-		DataFileMgr.Ghost_Release(CPGhost.GhostId);
-	}
-	
-	CPGhost.GhostAddId = NullId;
-	CPGhost.GhostId = NullId;
-	CPGhost.Duration = -1;
-	
-	return CPGhost;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Update the ghost of the best CP
-K_CPGhost UpdateCPGhost(K_CPGhost _CPGhost, CSmPlayer _Player, Integer _StopTime) {
-	declare K_CPGhost CPGhost = _CPGhost;
-	
-	declare Integer RaceDuration = -1;
-	if (_Player.StartTime >= 0 && _StopTime >= _Player.StartTime) {
-		RaceDuration = _StopTime - _Player.StartTime;
-	}
-	
-	declare CGhost NewGhost = Ghost_RetrieveFromPlayer(_Player);
-	declare Boolean NewGhostIsBetter = False;
-	if (NewGhost != Null) {
-		if (CPGhost.GhostId != NullId && DataFileMgr.Ghosts.existskey(CPGhost.GhostId)) {
-			declare CGhost OldGhost = DataFileMgr.Ghosts[CPGhost.GhostId];
-			if (NewGhost.Result.Checkpoints.count > OldGhost.Result.Checkpoints.count) {
-				NewGhostIsBetter = True;
-			} else if (NewGhost.Result.Checkpoints.count < OldGhost.Result.Checkpoints.count) {
-				NewGhostIsBetter = False;
-			} else if (NewGhost.Result.Checkpoints.count > 0) {
-				NewGhostIsBetter = NewGhost.Result.Checkpoints[NewGhost.Result.Checkpoints.count - 1] < OldGhost.Result.Checkpoints[NewGhost.Result.Checkpoints.count - 1];
-			} else {
-				NewGhostIsBetter = (RaceDuration >= 0 && (CPGhost.Duration < 0 || RaceDuration > CPGhost.Duration));
-			}
-		} else {
-			NewGhostIsBetter = True;
-		}
-	}
-	
-	if (NewGhostIsBetter) {
-		CPGhost = RemoveCPGhost(CPGhost);
-		CPGhost.GhostId = NewGhost.Id;
-		CPGhost.GhostAddId = Ghost_AddPBWithName(NewGhost, True);
-		CPGhost.Duration = RaceDuration;
-		
-		// Set best race with the ghost checkpoints times
-		declare Integer[] CPTimes;
-		foreach (CPTime in NewGhost.Result.Checkpoints) {
-			CPTimes.add(CPTime);
-		}
-		foreach (Player in Players) {
-			Scores::UseWaypointTimesAsBestRace(Player, CPTimes);
-		}
-	} else if (NewGhost != Null) {
-		DataFileMgr.Ghost_Release(NewGhost.Id);
-	}
-	
-	return CPGhost;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/** Fetch the ghost of the race for the player
- *
- *	@param	_SeasonId								The season Id of the campaign
- *
- *	@return													The ghost from the record of the player
- */
-Ident UpdateRaceGhost(Text _SeasonId) {
-	declare K_Scope Scope = GetScope(_SeasonId);
-	declare CTaskResult_Ghost GetGhostTaskResult = ScoreMgr.Map_GetRecordGhost_v2(
-		UserStore::GetMainUserId(),
-		Map.MapInfo.MapUid,
-		Scope.Type,
-		Scope.SeasonId,
-		MenuConsts::C_GameMode_TimeAttack,
-		""
-	);
-	if (GetGhostTaskResult == Null) return NullId;
-	
-	while (GetGhostTaskResult.IsProcessing) {
-		MB_Yield();
-	}
-
-	declare Ident GhostId = NullId;
-	if (GetGhostTaskResult.Ghost != Null) {
-		GhostId = GetGhostTaskResult.Ghost.Id;
-	}
-	ScoreMgr.TaskResult_Release(GetGhostTaskResult.Id);
-	
-	return GhostId;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/** Get the medal from the ScoreMgr and update the map medal in the CampaignStore
- *
- *	@param	_CampaignId							The Id of the campaign
- *	@param	_MapUid									The Id of the map
- *	@param	_SeasonId								The season Id of the campaign
- *
- *	@return													The updated map
- */
-CampaignStruct::LibCampaignStruct_K_Map UpdateMapMedal(Integer _CampaignId, Text _MapUid, Text _SeasonId) {
-	declare Medal = ScoreMgr.Map_GetMedal(
-		UserStore::GetMainUserId(),
-		Map.MapInfo.MapUid,
-		MenuConsts::C_ScopeType_PersonalBest,
-		"",
-		MenuConsts::C_GameMode_TimeAttack,
-		""
-	);
-	declare K_Scope Scope = GetScope(_SeasonId);
-	declare Score = ScoreMgr.Map_GetRecord_v2(
-		UserStore::GetMainUserId(),
-		Map.MapInfo.MapUid,
-		Scope.Type,
-		Scope.SeasonId,
-		MenuConsts::C_GameMode_TimeAttack,
-		""
-	);
-	return CampaignStore::SetMapMedalAndScore(_CampaignId, _MapUid, Medal, Score);
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-CampaignStruct::LibCampaignStruct_K_Map UpdateMapNetShare(Integer _CampaignId, Text _MapUid, Text _SeasonId) {
-	declare TmpMap = UpdateMapMedal(_CampaignId, _MapUid, _SeasonId);
-	NetShare::SetMap(TmpMap);
-
-	return TmpMap;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-//	Check if an event from the StartRaceMenu UI has been received and apply it if needed
-Void ProcessStartRaceMenuEvent() {
-	declare Text LastEventType = UIModules_StartRaceMenu::GetLastEventType();
-	switch (LastEventType) {
-		case Consts::C_RaceMenuEvent_Exit: MB_StopServer();
-	}
-	if (LastEventType != "" && LastEventType != Consts::C_RaceMenuEvent_MapRecordsUpdated && LastEventType != Consts::C_StartRaceMenuEvent_AddAccountIds) {
-		StateMgr::ForcePlayersStates([]);
-	}
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-//	Check if an event from the EndRaceMenu UI has been received and apply it if needed
-Void ProcessEndRaceMenuEvent() {
-	declare Text LastEventType = UIModules_EndRaceMenu::GetLastEventType();
-	switch (LastEventType) {
-		case Consts::C_RaceMenuEvent_ChangeOpponents: StateMgr::ForcePlayersStates([StateMgr::C_State_StartRaceMenu]);
-		case Consts::C_RaceMenuEvent_NextMap: MB_StopMap();
-		case Consts::C_RaceMenuEvent_Exit: MB_StopServer();
-	}
-	if (
-		LastEventType != "" && 
-		LastEventType != Consts::C_RaceMenuEvent_ChangeOpponents && 
-		LastEventType != Consts::C_EndRaceMenuEvent_SaveReplay &&
-		LastEventType != Consts::C_RaceMenuEvent_MapRecordsUpdated
-	) {
-		StateMgr::ForcePlayersStates([]);
-	}
-}
-
-Ident[Ident] AddGhostsToRaceFromAccountIdList(Text _SeasonId, Text[] AccountIds) {
-	declare K_Scope Scope = GetScope(_SeasonId);
-	declare CTaskResult_MapRecordList TaskMapRecordList = ScoreMgr.Map_GetPlayerListRecordList(
-		UserStore::GetMainUserId(),
-		AccountIds,
-		Map.MapInfo.MapUid,
-		Scope.Type,
-		Scope.SeasonId,
-		MenuConsts::C_GameMode_TimeAttack,
-		""
-	);
-
-	declare Ident[Ident] GhostIds;
-	declare Ident[] TaskDownloadGhostIdList;
-	while (MB_MapIsRunning() && (TaskMapRecordList != Null || TaskDownloadGhostIdList.count > 0)) {
-		if (TaskMapRecordList != Null && !TaskMapRecordList.IsProcessing) {
-			if (TaskMapRecordList.HasSucceeded) {
-				foreach (MapRecord in TaskMapRecordList.MapRecordList) {
-					declare CTaskResult_Ghost Task = DataFileMgr.Ghost_Download(MapRecord.FileName, MapRecord.ReplayUrl);
-					if (Task != Null) TaskDownloadGhostIdList.add(Task.Id);
-				}
-			}
-			ScoreMgr.TaskResult_Release(TaskMapRecordList.Id);
-			TaskMapRecordList = Null;
-		} else {
-			declare TmpTaskIdList = TaskDownloadGhostIdList;
-			foreach (Index => TaskDownloadGhostId in TmpTaskIdList) {
-				if (TaskDownloadGhostId != NullId && DataFileMgr.TaskResults.existskey(TaskDownloadGhostId)) {
-					declare CTaskResult Task = DataFileMgr.TaskResults[TaskDownloadGhostId];
-					if (Task != Null && (Task is CTaskResult_Ghost)) {
-						declare CTaskResult_Ghost TaskDownloadGhost = (Task as CTaskResult_Ghost);
-						if (TaskDownloadGhost != Null && !TaskDownloadGhost.IsProcessing) {
-							if (TaskDownloadGhost.HasSucceeded) {
-								GhostIds[TaskDownloadGhost.Ghost.Id] = GhostMgr.Ghost_Add(TaskDownloadGhost.Ghost, True);
-								if (C_EnableBestGhosts) {
-									Ghost::AvoidDuplicate_Add(TaskDownloadGhost.Ghost.Id);
-								}
-							}
-							DataFileMgr.TaskResult_Release(TaskDownloadGhost.Id);
-							TaskDownloadGhostIdList.removekey(Index);
-						}
-					} else {
-						if (Task != Null) DataFileMgr.TaskResult_Release(Task.Id);
-						TaskDownloadGhostIdList.removekey(Index);
-					}
-				} else {
-					TaskDownloadGhostIdList.removekey(Index);
-				}
-			}
-		}
-		MB_Yield();
-	}
-
-	return GhostIds;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Get the correct id of the campaign
-Integer GetCampaignId(Integer _CampaignType, Integer _CampaignId, Integer _CampaignMonthlyId) {
-	if (_CampaignType == CampaignStruct::C_CampaignType_Monthly) return _CampaignMonthlyId;
-	return _CampaignId;
-}
